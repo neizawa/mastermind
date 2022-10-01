@@ -79,7 +79,8 @@ class Game
 
     display_colors
     print 'Type 4 colors with space between them: '
-    check_guess(human_guess)
+    guess = human_guess
+    check_guess(guess)
     display_feedback
     @turns += 1
   end
@@ -88,16 +89,15 @@ class Game
     @black_pegs = 0
     @white_pegs = 0
 
-    display_guess(computer_guess)
-    check_guess(computer_guess)
+    guess = computer_guess
+    display_guess(guess)
+    check_guess(guess)
     display_feedback
     @turns += 1
   end
 
   def computer_guess
-    def self.choose_colors
-      4.times.map { COLORS.sample }
-    end
+    4.times.map { COLORS.sample }
   end
 
   def human_guess
@@ -145,14 +145,15 @@ end
 
 def start_game
   game = Game.new
-  print 'Welcome to Mastermind. Do you want to play as "Codebreaker" or "Codemaker"? '
+  print 'Do you want to play as "Codebreaker" or "Codemaker"? '
   game.choose_role
   restart_game?
 end
 
 def restart_game?
   print 'Do you want to restart game? '
-  gets.chomp.downcase == 'yes' || gets.chomp.downcase == 'y' ? start_game : puts('Thank you for playing!')
+  gets.chomp.downcase == 'yes' ? start_game : puts('Thank you for playing!')
 end
 
+print 'Welcome to Mastermind. '
 start_game
