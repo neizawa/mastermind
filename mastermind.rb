@@ -1,5 +1,3 @@
-require 'pry-byebug'
-
 COLORS = %w[red green blue yellow orange violet]
 
 module Display
@@ -41,10 +39,10 @@ class Game
   end
 
   def choose_role
-    case gets.chomp
-    when 'Codebreaker'
+    case gets.chomp.downcase
+    when 'codebreaker'
       play_codebreaker
-    when 'Codemaker'
+    when 'codemaker'
       play_codemaker
     else
       print 'Invalid choice. Choose whether "Codebreaker" or "Codemaker": '
@@ -53,11 +51,12 @@ class Game
   end
 
   def play_codebreaker
-    @secret_colors = Computer.choose_colors
+    @secret_colors = 4.times.map { COLORS.sample }
 
     until @black_pegs == 4 || turns > 12
       human_turn
     end
+
     @black_pegs == 4 ? display_victory : display_defeat
     display_secret_colors(@secret_colors)
   end
@@ -80,7 +79,7 @@ class Game
 
     display_colors
     print 'Type 4 colors with space between them: '
-    check_guess(guess)
+    check_guess(human_guess)
     display_feedback
     @turns += 1
   end
@@ -89,52 +88,58 @@ class Game
     @black_pegs = 0
     @white_pegs = 0
 
-    computer_guess = Computer.guess
-    check_guess(computer_guess)
     display_guess(computer_guess)
+    check_guess(computer_guess)
     display_feedback
     @turns += 1
   end
 
-  def guess
-    gets.chomp.split(' ')
+  def computer_guess
+    def self.choose_colors
+      4.times.map { COLORS.sample }
+    end
+  end
+
+  def human_guess
+    guess = gets.chomp.split(' ')
+    correct_colors = guess.reduce(0) do |memo, string|
+      COLORS.any?(string) ? memo += 1 : memo -= 999
+      memo
+    end
+
+    return guess if correct_colors == 4
+
+    print 'Invalid colors. Try again: '
+    human_guess
   end
 
   def check_guess(guess)
     temp_colors = []
+    temp_guess = []
     temp_colors += @secret_colors
+    temp_guess += guess
 
-    temp_colors = check_black_pegs(guess, temp_colors)
-    check_white_pegs(guess, temp_colors)
+    check_black_pegs(temp_guess, temp_colors)
+    check_white_pegs(temp_guess, temp_colors)
   end
 
-  def check_black_pegs(guess, temp_colors)
+  def check_black_pegs(guess, colors)
     guess.each_index do |index|
-      next unless guess[index] == temp_colors[index]
+      next unless guess[index] == colors[index]
 
       @black_pegs += 1
-      temp_colors[index] = nil
+      colors[index] = nil
+      guess[index] = nil
     end
-    temp_colors
   end
 
-  def check_white_pegs(guess, temp_colors)
+  def check_white_pegs(guess, colors)
     guess.each_index do |index|
-      next unless temp_colors.include? guess[index]
+      next unless (colors.include? guess[index]) && !guess[index].nil?
 
-      temp_colors.delete_at(temp_colors.index(guess[index]))
+      colors[index] = nil
       @white_pegs += 1
     end
-  end
-end
-
-class Computer
-  def self.choose_colors
-    4.times.map { COLORS.sample }
-  end
-
-  def self.guess
-    4.times.map { COLORS.sample }
   end
 end
 
